@@ -1,0 +1,15 @@
+#!/bin/bash
+sudo yum update -y
+sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
+sudo yum install -y httpd
+sudo systemctl start httpd
+sudo systemctl enable httpd
+
+cd /var/www/html
+
+ echo "<html> \
+      <h1>EC2 WebServer</h1> \
+      <h1>$(ec2-metadata --public-hostname)</h1> \
+      <h1>$(ec2-metadata --availability-zone)</h1> \
+      </html>" > index.html
+
