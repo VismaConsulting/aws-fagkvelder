@@ -1,6 +1,7 @@
 const AWS = require("aws-sdk");
-const s3 = new AWS.S3();
 const dynamo = new AWS.DynamoDB.DocumentClient();
+
+const Table_NAME = process.env.Table_NAME;
 
 exports.handler = async (event) => {
   let body;
@@ -8,14 +9,13 @@ exports.handler = async (event) => {
   const headers = {
     "Content-Type": "application/json",
   };
-  Formatter;
 
   try {
     switch (event.routeKey) {
       case "DELETE /sertifiseringer/{id}":
         await dynamo
           .delete({
-            TableName: "sertifiseringer",
+            TableName: Table_NAME,
             Key: {
               id: event.pathParameters.id,
             },
@@ -26,7 +26,7 @@ exports.handler = async (event) => {
       case "GET /sertifiseringer/{id}":
         body = await dynamo
           .get({
-            TableName: "sertifiseringer",
+            TableName: Table_NAME,
             Key: {
               id: event.pathParameters.id,
             },
@@ -35,14 +35,14 @@ exports.handler = async (event) => {
         body = body.Item;
         break;
       case "GET /sertifiseringer":
-        body = await dynamo.scan({ TableName: "sertifiseringer" }).promise();
+        body = await dynamo.scan({ TableName: Table_NAME }).promise();
         body = body.Items;
         break;
       case "PUT /sertifiseringer":
         let requestJSON = JSON.parse(event.body);
         await dynamo
           .put({
-            TableName: "sertifiseringer",
+            TableName: Table_NAME,
             Item: {
               id: requestJSON.id,
               tittel: requestJSON.tittel,
