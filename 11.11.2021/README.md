@@ -26,7 +26,7 @@ aws s3 mb s3://$bucketName
 Ut:
 
 ```
-make_bucket: $initials-utvikler-fagkveld
+make_bucket: DINE_INITIALER-utvikler-fagkveld
 ```
 
 For å sette opp en EC2 server fra AWS CLI trenger vi å opprette flere ressuser:
@@ -44,7 +44,7 @@ ls
 Ut:
 
 ```
-$initials-utvikler-key.pem
+DINE_INITIALER-utvikler-key.pem
 ```
 
 For å kunne koble til server senere trenger vi å begrense hvem kan bruke nøkklen
@@ -104,10 +104,10 @@ Ut:
       "ImageId": "ami-01cc34ab2709337aa",
       "InstanceId": "i-04d8df24d3c966cb4",
       "InstanceType": "t2.micro",
-      "KeyName": "$initials-utvikler-key",
+      "KeyName": "DINE_INITIALER-utvikler-key",
       "SecurityGroups": [
         {
-          "GroupName": "$initials-utvikler-sg",
+          "GroupName": "DINE_INITIALER-utvikler-sg",
           "GroupId": "sg-020c2570f369ee6df"
         }
       ]
@@ -174,9 +174,9 @@ Ut:
 {
   "Role": {
     "Path": "/",
-    "RoleName": "$initials-utvikler-role",
+    "RoleName": "DINE_INITIALER-utvikler-role",
     "RoleId": "AROA4FUM6DNHVYGH3CYZY",
-    "Arn": "arn:aws:iam::836740455247:role/$initials-utvikler-role",
+    "Arn": "arn:aws:iam::836740455247:role/DINE_INITIALER-utvikler-role",
     "CreateDate": "2021-11-04T22:53:52+00:00",
     "AssumeRolePolicyDocument": {
       "Version": "2012-10-17",
@@ -223,7 +223,7 @@ Ut:
     "AssociationId": "iip-assoc-09564eba2dca820e6",
     "InstanceId": "i-04d8df24d3c966cb4",
     "IamInstanceProfile": {
-      "Arn": "arn:aws:iam::836740455247:instance-profile/$initials-utvikler-instance-profile",
+      "Arn": "arn:aws:iam::836740455247:instance-profile/DINE_INITIALER-utvikler-instance-profile",
       "Id": "AIPA4FUM6DNHU3LPPSRBR"
     },
     "State": "associating"
@@ -248,7 +248,7 @@ Ut:
           "ImageId": "ami-01cc34ab2709337aa",
           "InstanceId": "i-04d8df24d3c966cb4",
           "InstanceType": "t2.micro",
-          "KeyName": "$initials-utvikler-key",
+          "KeyName": "DINE_INITIALER-utvikler-key",
           "LaunchTime": "2021-11-04T22:14:02+00:00",
           "Monitoring": {
             "State": "disabled"
@@ -287,7 +287,7 @@ Ut:
           "EnaSupport": true,
           "Hypervisor": "xen",
           "IamInstanceProfile": {
-            "Arn": "arn:aws:iam::836740455247:instance-profile/$initials-utvikler-instance-profile",
+            "Arn": "arn:aws:iam::836740455247:instance-profile/DINE_INITIALER-utvikler-instance-profile",
             "Id": "AIPA4FUM6DNHU3LPPSRBR"
           },
           "NetworkInterfaces": [
@@ -308,7 +308,7 @@ Ut:
               "Description": "",
               "Groups": [
                 {
-                  "GroupName": "$initials-utvikler-sg",
+                  "GroupName": "DINE_INITIALER-utvikler-sg",
                   "GroupId": "sg-020c2570f369ee6df"
                 }
               ],
@@ -341,7 +341,7 @@ Ut:
           "RootDeviceType": "ebs",
           "SecurityGroups": [
             {
-              "GroupName": "$initials-utvikler-sg",
+              "GroupName": "DINE_INITIALER-utvikler-sg",
               "GroupId": "sg-020c2570f369ee6df"
             }
           ],
@@ -349,7 +349,7 @@ Ut:
           "Tags": [
             {
               "Key": "Name",
-              "Value": "$initials-SpringApp"
+              "Value": "DINE_INITIALER-SpringApp"
             }
           ],
           "VirtualizationType": "hvm",
@@ -393,7 +393,7 @@ Ut:
 ```
 {
 "PublicIp": "3.83.129.167",
-"Name": "$initials-SpringApp",
+"Name": "DINE_INITIALER-SpringApp",
 "Status": "running"
 }
 ```
