@@ -1,0 +1,1 @@
+yum -y install java-11-amazon-corretto-headless-1:11.0.8+10-1.amzn2.x86_64

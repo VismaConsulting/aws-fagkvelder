@@ -1,0 +1,5 @@
+#!/bin/bash
+app_id=$(ps -ef | grep 'spring-app.jar' | grep -v 'grep' | awk '{ printf $2 }')
+if [[ -n  $app_id ]]; then
+    kill $app_id
+fi
