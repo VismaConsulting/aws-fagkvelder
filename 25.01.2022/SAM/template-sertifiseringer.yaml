@@ -2,6 +2,14 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31' # SAM template
 Description: Stack for creating sertifiseringer webpage
 
+Parameters:
+
+# Prefix that is used to name resources that are created from this template
+  Prefix:
+    Type: String
+    Default: eira
+
+
 Resources:
 
 # Create Lambda functions and their invoking API methods
@@ -13,7 +21,6 @@ Resources:
       CodeUri: src/lambda-upload-to-s3/index.js
       MemorySize: 128
       Timeout: 3
-      Role: !GetAtt MyLambdaS3Role.Arn 
       Events:
         UploadEvent:
           Type: HttpApi
@@ -22,9 +29,6 @@ Resources:
             Method: PUT
             ApiId:
               Ref: MyHttpApi
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: eira-sertifiseringer-table-sam #!Ref MyDynamoDBTable
 
 
   LambdaToDynamoDB:
@@ -35,7 +39,6 @@ Resources:
       CodeUri: src/lambda-to-dynamodb/index.js
       MemorySize: 128
       Timeout: 3
-      Role: !GetAtt MyLambdaDynamoDBRole.Arn
       Events:
         GetEvent:
           Type: HttpApi
@@ -70,7 +73,7 @@ Resources:
               Ref: MyHttpApi
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: eira-sertifiseringer-table-sam #!Ref MyDynamoDBTable
+            TableName: !Join [ '', [ !Ref Prefix,  -sam-sertifiseringer-table] ]
 
 
 # Create API Gateway
@@ -92,7 +95,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
-      BucketName: eira-sertifiseringer-bucket-sam  # ---------------- fix bucket name --------------------
+      BucketName: !Join [ '', [ !Ref Prefix,  -sam-sertifiseringer-bucket] ]
       WebsiteConfiguration: 
         IndexDocument: index.html
 
@@ -128,61 +131,4 @@ Resources:
       PrimaryKey:
         Name: id
         Type: String
-      TableName: eira-sertifiseringer-table-sam
-
-
-
-
-
-
-
-  # IAM role to be used by Lambda to allow upload to S3
-  MyLambdaS3Role:
-    Type: AWS::IAM::Role
-    Properties: 
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Policies:
-        - PolicyName: EmbeddedInlinePolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: 
-                  - s3:*
-                  - s3-object-lambda:*
-                Resource: '*'
-
-  # IAM role to be used by Lambda to access DynamoDB
-  MyLambdaDynamoDBRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Policies:
-        - PolicyName: EmbeddedInlinePolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - dynamodb:DeleteItem
-                  - dynamodb:GetItem
-                  - dynamodb:PutItem
-                  - dynamodb:Scan
-                  - dynamodb:UpdateItem
-                Resource: '*' 
+      TableName: !Join [ '', [ !Ref Prefix,  -sam-sertifiseringer-table] ]

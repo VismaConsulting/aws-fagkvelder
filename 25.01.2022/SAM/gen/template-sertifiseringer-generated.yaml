@@ -1,19 +1,19 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Stack for creating sertifiseringer webpage
+Parameters:
+  Prefix:
+    Type: String
+    Default: eira
 Resources:
   LambdaUploadToS3:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
       Runtime: nodejs14.x
-      CodeUri: s3://eira-code-sam-test/6f68be438561a410837e2e959d763e6c
+      CodeUri: s3://eira-sam-deployment/7cec69cd2d9292f270a82ae87e9578d0
       MemorySize: 128
       Timeout: 3
-      Role:
-        Fn::GetAtt:
-        - MyLambdaS3Role
-        - Arn
       Events:
         UploadEvent:
           Type: HttpApi
@@ -22,21 +22,14 @@ Resources:
             Method: PUT
             ApiId:
               Ref: MyHttpApi
-      Policies:
-      - DynamoDBCrudPolicy:
-          TableName: eira-sertifiseringer-table-sam
   LambdaToDynamoDB:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
       Runtime: nodejs14.x
-      CodeUri: s3://eira-code-sam-test/d9eb2bc7cf7c7205a14fd185695da4b5
+      CodeUri: s3://eira-sam-deployment/092231c1df15ee10aae51a7fbae38253
       MemorySize: 128
       Timeout: 3
-      Role:
-        Fn::GetAtt:
-        - MyLambdaDynamoDBRole
-        - Arn
       Events:
         GetEvent:
           Type: HttpApi
@@ -68,7 +61,11 @@ Resources:
               Ref: MyHttpApi
       Policies:
       - DynamoDBCrudPolicy:
-          TableName: eira-sertifiseringer-table-sam
+          TableName:
+            Fn::Join:
+            - ''
+            - - Ref: Prefix
+              - -sam-sertifiseringer-table
   MyHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -84,7 +81,11 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
-      BucketName: eira-sertifiseringer-bucket-sam
+      BucketName:
+        Fn::Join:
+        - ''
+        - - Ref: Prefix
+          - -sam-sertifiseringer-bucket
       WebsiteConfiguration:
         IndexDocument: index.html
   BucketPolicy:
@@ -118,51 +119,8 @@ Resources:
       PrimaryKey:
         Name: id
         Type: String
-      TableName: eira-sertifiseringer-table-sam
-  MyLambdaS3Role:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-      - PolicyName: EmbeddedInlinePolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - s3:*
-            - s3-object-lambda:*
-            Resource: '*'
-  MyLambdaDynamoDBRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-      - PolicyName: EmbeddedInlinePolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - dynamodb:DeleteItem
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:Scan
-            - dynamodb:UpdateItem
-            Resource: '*'
+      TableName:
+        Fn::Join:
+        - ''
+        - - Ref: Prefix
+          - -sam-sertifiseringer-table

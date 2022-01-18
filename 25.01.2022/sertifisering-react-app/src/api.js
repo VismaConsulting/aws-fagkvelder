@@ -1,7 +1,7 @@
 import axios from "axios";
 
-//const apiURL = "https://bv2yqw9ri7.execute-api.us-east-1.amazonaws.com/"; 
-const apiURL = "https://v0qj1dbqq5.execute-api.us-east-1.amazonaws.com/test"; // legge til URL for API-et
+// Legg til URL for API-et
+const apiURL = "https://iw9ldeyj3c.execute-api.us-east-1.amazonaws.com/test";
 
 export const getSertifiseringer = async () => {
   const respons = await axios.get(`${apiURL}/sertifiseringer`);
