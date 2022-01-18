@@ -54,6 +54,7 @@ Først kan vi begynne med å importere det vi trenger:
 ```python
 from aws_cdk import (
     Stack,
+    CfnOutput,
     aws_s3 as s3,
     aws_dynamodb as dynamodb,
     RemovalPolicy,
@@ -154,7 +155,7 @@ Vi trenger også to lambda-funksjoner. Her kan vi referere til javascript-funksj
 Hittil har vi ikke laget noen IAM-ressurser. Ved mindre vi skal gjøre noe veldig spesifikt, trenger vi ikke det heller! De blir laget for oss, men vi kan likevel spesifisere nødvendige tilganger. La oss gi database-funksjonen lese og skrive-tilgang til DynamoDB tablet vårt:
 
 ```python 
-database.grant_read_write_data(database_func)
+        database.grant_read_write_data(database_func)
 ```
 Ingen knoting i IAM-konsollen nødvendig.
 
@@ -191,6 +192,12 @@ Til sist trenger vi en API gateway som nettsiden kan bruke til å interagere med
         )
 ```
 
+For å enkelt se hva den resulterende endpoint URL-en er, kan vi outputte det til slutt.
+
+```python
+        CfnOutput(self, "API_URL", value=http_api.api_endpoint)
+```
+
 ## Deployment 
 Når alt er på plass, sjekk at alt fungerer ved å igjen skrive 
 
@@ -216,7 +223,7 @@ cdk deploy
 Dette kan ta en stund, men du burde få løpende oppdateringer på hva som opprettes og rives ned. Du kan også sjekke dette i AWS-konsollen ved å søke på `CloudFormation` og finne din stack.
 
 ## Testing
-Dersom alt gikk bra, kan vi teste resultatet ved å prøve å gjenskape sertifisering-nettsiden. På din lokale maskin, naviger til git-repoet og opprett et shell i `s3/sertifisering-react-app`. Mappen. Vi trenger å gjøre om på en linje i `src/api.js`-filen, nemlig å sette `apiURL` til en den riktige verdien. Du finner API Gateway URLen ved å gå i AWS-konsollen, søke på `api gateway` og trykke på din gateway. Kopier linken under `Invoke URL` og lim inn i `api.js`-filen.
+Dersom alt gikk bra, kan vi teste resultatet ved å prøve å gjenskape sertifisering-nettsiden. På din lokale maskin, naviger til git-repoet og opprett et shell i `s3/sertifisering-react-app`. Mappen. Vi trenger å gjøre om på en linje i `src/api.js`-filen, nemlig å sette `apiURL` til en den riktige verdien. Du finner API Gateway URLen som output til `cdk deploy` kommandoen, eller ved å gå i AWS-konsollen, søke på `api gateway` og trykke på din gateway. Kopier linken under `Invoke URL` og lim inn i `api.js`-filen.
 
 Når URLen er på plass kan vi kjøre 
 ```bash 

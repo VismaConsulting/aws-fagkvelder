@@ -1,5 +1,6 @@
 from aws_cdk import (
     Stack,
+    CfnOutput,
     aws_s3 as s3,
     aws_dynamodb as dynamodb,
     RemovalPolicy,
@@ -110,3 +111,5 @@ class CdkStack(Stack):
             methods = [api.HttpMethod.PUT],
             integration = api_integrations.HttpLambdaIntegration("UploadIntegration", upload_func)
         )
+
+        CfnOutput(self, "API_URL", value=http_api.api_endpoint)
