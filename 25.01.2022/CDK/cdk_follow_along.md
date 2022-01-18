@@ -74,7 +74,7 @@ Videre lager vi et unikt prefiks slik at du kan enkelt kjenne igjen dine ressurs
 custom_prefix = "mine-initialer"
 ```
 
-Nå kan vi begynne å opprette ressurser inne i `___init___()`-konstruktøren! La oss begynne med å lage en S3-bucket som skal hoste nettsiden.
+Nå kan vi begynne å opprette ressurser inne i `___init___()`-konstruktøren! La oss begynne med å lage en [S3-bucket](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_s3/Bucket.html) som skal hoste nettsiden.
 
 ```python 
         # S3 BUCKET
@@ -97,7 +97,7 @@ Nå kan vi begynne å opprette ressurser inne i `___init___()`-konstruktøren! L
         )
 ```
 
-Vi trenger også et DynamoDB Table.
+Vi trenger også et [DynamoDB Table](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_dynamodb/Table.html).
 
 ```python
         # DYNAMODB
@@ -123,7 +123,7 @@ Vi trenger også et DynamoDB Table.
 
 Her setter vi også autoskalering på tabellen. 
 
-Vi trenger også to lambda-funksjoner. Her kan vi referere til javascript-funksjonene vi la inn i `functions`-mappen.
+Vi trenger også to [lambda-funksjoner](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_lambda/Function.html). Her kan vi referere til javascript-funksjonene vi la inn i `functions`-mappen.
 
 ```python
         # LAMBDA
@@ -159,7 +159,7 @@ Hittil har vi ikke laget noen IAM-ressurser. Ved mindre vi skal gjøre noe veldi
 ```
 Ingen knoting i IAM-konsollen nødvendig.
 
-Til sist trenger vi en API gateway som nettsiden kan bruke til å interagere med backenden vår. Til dette bruker vi et HTTP API. Dette er per nå en eksperimentell del av CDK for python, og kan gjennomgå brytende forandringer i fremtiden.
+Til sist trenger vi en API gateway som nettsiden kan bruke til å interagere med backenden vår. Til dette bruker vi et [HTTP API](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_apigatewayv2_alpha/HttpApi.html). Dette er per nå en eksperimentell del av CDK for python, og kan gjennomgå brytende forandringer i fremtiden.
 
 ```python
         # API
