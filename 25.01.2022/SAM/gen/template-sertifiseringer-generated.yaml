@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Stack for creating sertifiseringer webpage
+Resources:
+  LambdaUploadToS3:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs14.x
+      CodeUri: s3://eira-code-sam-test/6f68be438561a410837e2e959d763e6c
+      MemorySize: 128
+      Timeout: 3
+      Role:
+        Fn::GetAtt:
+        - MyLambdaS3Role
+        - Arn
+      Events:
+        UploadEvent:
+          Type: HttpApi
+          Properties:
+            Path: /upload
+            Method: PUT
+            ApiId:
+              Ref: MyHttpApi
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: eira-sertifiseringer-table-sam
+  LambdaToDynamoDB:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs14.x
+      CodeUri: s3://eira-code-sam-test/d9eb2bc7cf7c7205a14fd185695da4b5
+      MemorySize: 128
+      Timeout: 3
+      Role:
+        Fn::GetAtt:
+        - MyLambdaDynamoDBRole
+        - Arn
+      Events:
+        GetEvent:
+          Type: HttpApi
+          Properties:
+            Path: /sertifiseringer
+            Method: GET
+            ApiId:
+              Ref: MyHttpApi
+        GetIdEvent:
+          Type: HttpApi
+          Properties:
+            Path: /sertifiseringer/{id}
+            Method: GET
+            ApiId:
+              Ref: MyHttpApi
+        PutEvent:
+          Type: HttpApi
+          Properties:
+            Path: /sertifiseringer
+            Method: PUT
+            ApiId:
+              Ref: MyHttpApi
+        DeleteEvent:
+          Type: HttpApi
+          Properties:
+            Path: /sertifiseringer/{id}
+            Method: DELETE
+            ApiId:
+              Ref: MyHttpApi
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: eira-sertifiseringer-table-sam
+  MyHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: test
+      CorsConfiguration:
+        AllowOrigins:
+        - '*'
+        AllowHeaders:
+        - '*'
+        AllowMethods:
+        - '*'
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName: eira-sertifiseringer-bucket-sam
+      WebsiteConfiguration:
+        IndexDocument: index.html
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: '2012-10-17'
+        Statement:
+        - Sid: PublicReadForGetBucketObjects
+          Effect: Allow
+          Principal: '*'
+          Action:
+          - s3:GetObject
+          - s3:PutObject
+          - s3:*
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: MyS3Bucket
+              - /*
+      Bucket:
+        Ref: MyS3Bucket
+  MyDynamoDBTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+      PrimaryKey:
+        Name: id
+        Type: String
+      TableName: eira-sertifiseringer-table-sam
+  MyLambdaS3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: EmbeddedInlinePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:*
+            - s3-object-lambda:*
+            Resource: '*'
+  MyLambdaDynamoDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: EmbeddedInlinePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:DeleteItem
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:Scan
+            - dynamodb:UpdateItem
+            Resource: '*'
