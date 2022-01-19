@@ -1,6 +1,12 @@
 
+Parameters:
 
-#--------------------------------------------#
+# Prefix that is used to name resources that are created from this template
+  Prefix:
+    Type: String
+    Default: dine-initialer-eller-navn
+
+
 Resources:
 
   # IAM role to be used by Lambda to allow upload to S3
@@ -56,7 +62,7 @@ Resources:
 
 
 
-  # Lambda function for uploading to S3                -------------- fix bucket name -----------------
+  # Lambda function for uploading to S3 
   LambdaUploadToS3:
     Type: AWS::Lambda::Function
     Properties: 
@@ -65,7 +71,7 @@ Resources:
           const AWS = require("aws-sdk");
           const s3 = new AWS.S3();
 
-          const S3_BUCKET_NAME = "eira-sertifiseringer-bucket-cloudformation"; 
+          const S3_BUCKET_NAME = "PREFIX-cloudformation-sertifiseringer-bucket"; 
 
           exports.handler = async (event) => {
             let contentTypes = ["jpg", "png", "jpeg"];
@@ -122,12 +128,13 @@ Resources:
             const url = `https://${bucketName}.s3${regionString}.amazonaws.com/${objectKey}`;
             return url;
           }
-      FunctionName: eira-upload-to-s3-cloudformation                               # ------------ fix function name -------------
+      #FunctionName: eira-upload-to-s3-cloudformation
+      FunctionName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-upload-to-s3] ]
       Handler: index.handler
       Runtime: nodejs14.x
       Role: !GetAtt MyLambdaS3Role.Arn 
 
-  # Lambda function to talk to DynamoDB                                 # ------------- fix table name ----------------
+  # Lambda function to talk to DynamoDB
   LambdaToDynamoDB:
     Type: AWS::Lambda::Function
     Properties: 
@@ -136,7 +143,7 @@ Resources:
           const AWS = require("aws-sdk");
           const dynamo = new AWS.DynamoDB.DocumentClient();
 
-          const Table_NAME = "eira-sertifiseringer-table-cloudformation";
+          const Table_NAME = "PREFIX-cloudformation-sertifiseringer-table";
 
           exports.handler = async (event) => {
             let body;
@@ -206,7 +213,8 @@ Resources:
               headers,
             };
           };
-      FunctionName: eira-sertifiseringer-lambda-cloudformation                        # ------------ fix function name ----------------
+      #FunctionName: eira-sertifiseringer-lambda-cloudformation
+      FunctionName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-lambda-to-dynamodb] ]
       Handler: index.handler
       Runtime: nodejs14.x
       Role: !GetAtt MyLambdaDynamoDBRole.Arn 
@@ -218,7 +226,8 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
-      BucketName: eira-sertifiseringer-bucket-cloudformation                           # ---------------- fix bucket name --------------------
+      #BucketName: eira-sertifiseringer-bucket-cloudformation 
+      BucketName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-bucket] ]
       WebsiteConfiguration: 
         IndexDocument: index.html
 
@@ -254,7 +263,8 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH # partition key, RANGE er sort key
-      TableName: eira-sertifiseringer-table-cloudformation                               # ---------------- fix table name --------------------
+      #TableName: eira-sertifiseringer-table-cloudformation  
+      TableName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-table] ]
       BillingMode: PAY_PER_REQUEST # default is PROVISIONED
 
 
@@ -279,7 +289,8 @@ Resources:
   MyAPIGateway:
     Type: AWS::ApiGatewayV2::Api
     Properties: 
-      Name: eira-sertifiseringer-api-cloudformation                                   # ------------------- fix API name -------------------
+      #Name: eira-sertifiseringer-api-cloudformation   
+      Name: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-api] ]
       ProtocolType: HTTP
       CorsConfiguration:
         AllowOrigins: 
