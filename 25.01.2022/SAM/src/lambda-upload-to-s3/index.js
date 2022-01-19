@@ -1,7 +1,7 @@
 const AWS = require("aws-sdk");
 const s3 = new AWS.S3();
 
-const S3_BUCKET_NAME = "eira-sam-sertifiseringer-bucket"; // må endre bucket name
+const S3_BUCKET_NAME = "PREFIX-sam-sertifiseringer-bucket"; // må endre bucket name
 
 exports.handler = async (event) => {
   let contentTypes = ["jpg", "png", "jpeg"];

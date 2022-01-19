@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const apiURL = "DIN_API_URL";
+const apiURL = "https://satfplornl.execute-api.us-east-1.amazonaws.com";
 
 export const getSertifiseringer = async () => {
   const respons = await axios.get(`${apiURL}/sertifiseringer`);
