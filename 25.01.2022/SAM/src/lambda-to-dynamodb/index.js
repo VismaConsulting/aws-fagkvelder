@@ -1,7 +1,7 @@
 const AWS = require("aws-sdk");
 const dynamo = new AWS.DynamoDB.DocumentClient();
 
-const Table_NAME = "PREFIX-sam-sertifiseringer-table"; // må endre table name
+const Table_NAME = "PREFIX-sam-sertifiseringer-table"; // må endre table name 
 
 exports.handler = async (event) => {
   let body;

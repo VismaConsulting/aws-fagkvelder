@@ -20,7 +20,7 @@ Resources:
       Runtime: nodejs14.x
       CodeUri: src/lambda-upload-to-s3/index.js
       MemorySize: 128
-      Timeout: 3
+      Timeout: 10
       Events:
         UploadEvent:
           Type: HttpApi
@@ -38,7 +38,7 @@ Resources:
       Runtime: nodejs14.x
       CodeUri: src/lambda-to-dynamodb/index.js
       MemorySize: 128
-      Timeout: 3
+      Timeout: 10
       Events:
         GetEvent:
           Type: HttpApi
@@ -80,7 +80,7 @@ Resources:
   MyHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: test
+      StageName: dev
       CorsConfiguration:
         AllowOrigins: 
           - '*'
@@ -88,16 +88,6 @@ Resources:
           - '*'
         AllowMethods: 
           - '*'
-
-
-# Create S3 bucket to host website
-  MyS3Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: PublicRead
-      BucketName: !Join [ '', [ !Ref Prefix,  -sam-sertifiseringer-bucket] ]
-      WebsiteConfiguration: 
-        IndexDocument: index.html
 
   # Bucket policy to allow actions on our S3 bucket
   BucketPolicy:
@@ -111,8 +101,6 @@ Resources:
             Effect: Allow
             Principal: '*' 
             Action: 
-              - s3:GetObject
-              - s3:PutObject
               - s3:*
             Resource: !Join 
               - ''
@@ -120,6 +108,15 @@ Resources:
                 - !Ref MyS3Bucket
                 - /*
       Bucket: !Ref MyS3Bucket
+
+# Create S3 bucket to host website
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Join [ '', [ !Ref Prefix,  -sam-sertifiseringer-bucket] ]
+      WebsiteConfiguration: 
+        IndexDocument: index.html
 
 # DynamoDB table
   MyDynamoDBTable:

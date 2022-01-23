@@ -11,9 +11,13 @@ Resources:
     Properties:
       Handler: index.handler
       Runtime: nodejs14.x
-      CodeUri: s3://eira-sam-deployment/7cec69cd2d9292f270a82ae87e9578d0
+      CodeUri: s3://eira-sam-deployment/43efcf91e339790b4ae587fd9b253165
       MemorySize: 128
-      Timeout: 3
+      Timeout: 10
+      Role:
+        Fn::GetAtt:
+        - MyLambdaS3Role
+        - Arn
       Events:
         UploadEvent:
           Type: HttpApi
@@ -27,9 +31,9 @@ Resources:
     Properties:
       Handler: index.handler
       Runtime: nodejs14.x
-      CodeUri: s3://eira-sam-deployment/092231c1df15ee10aae51a7fbae38253
+      CodeUri: s3://eira-sam-deployment/76bf793c8f3788127044d753f7c2080e
       MemorySize: 128
-      Timeout: 3
+      Timeout: 10
       Events:
         GetEvent:
           Type: HttpApi
@@ -69,7 +73,7 @@ Resources:
   MyHttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: test
+      StageName: dev
       CorsConfiguration:
         AllowOrigins:
         - '*'
@@ -77,17 +81,6 @@ Resources:
         - '*'
         AllowMethods:
         - '*'
-  MyS3Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: PublicRead
-      BucketName:
-        Fn::Join:
-        - ''
-        - - Ref: Prefix
-          - -sam-sertifiseringer-bucket
-      WebsiteConfiguration:
-        IndexDocument: index.html
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -99,8 +92,6 @@ Resources:
           Effect: Allow
           Principal: '*'
           Action:
-          - s3:GetObject
-          - s3:PutObject
           - s3:*
           Resource:
             Fn::Join:
@@ -110,6 +101,17 @@ Resources:
               - /*
       Bucket:
         Ref: MyS3Bucket
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName:
+        Fn::Join:
+        - ''
+        - - Ref: Prefix
+          - -sam-sertifiseringer-bucket
+      WebsiteConfiguration:
+        IndexDocument: index.html
   MyDynamoDBTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
@@ -124,3 +126,25 @@ Resources:
         - ''
         - - Ref: Prefix
           - -sam-sertifiseringer-table
+  MyLambdaS3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: EmbeddedInlinePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:*
+            - s3-object-lambda:*
+            Resource: '*'
