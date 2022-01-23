@@ -4,7 +4,7 @@ Parameters:
 # Prefix that is used to name resources that are created from this template
   Prefix:
     Type: String
-    Default: eira #dine-initialer-eller-navn
+    Default: dine-initialer-eller-navn
 
 
 Resources:
@@ -71,7 +71,7 @@ Resources:
           const AWS = require("aws-sdk");
           const s3 = new AWS.S3();
 
-          const S3_BUCKET_NAME = "eira-cloudformation-sertifiseringer-bucket"; 
+          const S3_BUCKET_NAME = "PREFIX-cloudformation-sertifiseringer-bucket"; 
 
           exports.handler = async (event) => {
             let contentTypes = ["jpg", "png", "jpeg"];
@@ -142,7 +142,7 @@ Resources:
           const AWS = require("aws-sdk");
           const dynamo = new AWS.DynamoDB.DocumentClient();
 
-          const Table_NAME = "eira-cloudformation-sertifiseringer-table";
+          const Table_NAME = "PREFIX-cloudformation-sertifiseringer-table";
 
           exports.handler = async (event) => {
             let body;
