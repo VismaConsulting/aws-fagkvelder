@@ -4,7 +4,7 @@ Parameters:
 # Prefix that is used to name resources that are created from this template
   Prefix:
     Type: String
-    Default: dine-initialer-eller-navn
+    Default: eira #dine-initialer-eller-navn
 
 
 Resources:
@@ -71,7 +71,7 @@ Resources:
           const AWS = require("aws-sdk");
           const s3 = new AWS.S3();
 
-          const S3_BUCKET_NAME = "PREFIX-cloudformation-sertifiseringer-bucket"; 
+          const S3_BUCKET_NAME = "eira-cloudformation-sertifiseringer-bucket"; 
 
           exports.handler = async (event) => {
             let contentTypes = ["jpg", "png", "jpeg"];
@@ -128,7 +128,6 @@ Resources:
             const url = `https://${bucketName}.s3${regionString}.amazonaws.com/${objectKey}`;
             return url;
           }
-      #FunctionName: eira-upload-to-s3-cloudformation
       FunctionName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-upload-to-s3] ]
       Handler: index.handler
       Runtime: nodejs14.x
@@ -143,7 +142,7 @@ Resources:
           const AWS = require("aws-sdk");
           const dynamo = new AWS.DynamoDB.DocumentClient();
 
-          const Table_NAME = "PREFIX-cloudformation-sertifiseringer-table";
+          const Table_NAME = "eira-cloudformation-sertifiseringer-table";
 
           exports.handler = async (event) => {
             let body;
@@ -213,7 +212,6 @@ Resources:
               headers,
             };
           };
-      #FunctionName: eira-sertifiseringer-lambda-cloudformation
       FunctionName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-lambda-to-dynamodb] ]
       Handler: index.handler
       Runtime: nodejs14.x
@@ -226,7 +224,6 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
-      #BucketName: eira-sertifiseringer-bucket-cloudformation 
       BucketName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-bucket] ]
       WebsiteConfiguration: 
         IndexDocument: index.html
@@ -263,7 +260,6 @@ Resources:
       KeySchema:
         - AttributeName: id
           KeyType: HASH # partition key, RANGE er sort key
-      #TableName: eira-sertifiseringer-table-cloudformation  
       TableName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-table] ]
       BillingMode: PAY_PER_REQUEST # default is PROVISIONED
 
@@ -275,7 +271,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt LambdaToDynamoDB.Arn
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyAPIGateway}/test/*
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyAPIGateway}/dev/*
 
   LambdaUploadToS3ApiGatewayInvoke:
     Type: AWS::Lambda::Permission
@@ -283,13 +279,12 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt LambdaUploadToS3.Arn
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyAPIGateway}/test/*
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyAPIGateway}/dev/*
 
   # Selve API-et
   MyAPIGateway:
     Type: AWS::ApiGatewayV2::Api
     Properties: 
-      #Name: eira-sertifiseringer-api-cloudformation   
       Name: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-api] ]
       ProtocolType: HTTP
       CorsConfiguration:
@@ -379,3 +374,25 @@ Resources:
         - /
         - - integrations
           - !Ref LambdaIntegrationS3
+
+  # Deploye API-et
+  MyAPIDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+    - ApiRoute1
+    - ApiRoute2
+    - ApiRoute3
+    - ApiRoute4
+    - ApiRoute5
+    Properties: 
+      ApiId: !Ref MyAPIGateway
+      StageName: dev
+
+  # Lage stage for API deployment
+  MyAPIStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties: 
+      ApiId: !Ref MyAPIGateway
+      #DeploymentId: !Ref MyAPIDeployment
+      AutoDeploy: true
+      StageName: dev
