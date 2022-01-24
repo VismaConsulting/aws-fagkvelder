@@ -1,0 +1,398 @@
+
+Parameters:
+
+# Prefix that is used to name resources that are created from this template
+  Prefix:
+    Type: String
+    Default: dine-initialer-eller-navn
+
+
+Resources:
+
+  # IAM role to be used by Lambda to allow upload to S3
+  MyLambdaS3Role:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: EmbeddedInlinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - s3:*
+                  - s3-object-lambda:*
+                Resource: '*'
+
+  # IAM role to be used by Lambda to access DynamoDB
+  MyLambdaDynamoDBRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: EmbeddedInlinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                Resource: '*' 
+
+
+
+  # Lambda function for uploading to S3 
+  LambdaUploadToS3:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          const AWS = require("aws-sdk");
+          const s3 = new AWS.S3();
+
+          const S3_BUCKET_NAME = "PREFIX-cloudformation-sertifiseringer-bucket"; 
+
+          exports.handler = async (event) => {
+            let contentTypes = ["jpg", "png", "jpeg"];
+            let fileContent = event.isBase64Encoded
+              ? Buffer.from(event.body, "base64")
+              : event.body;
+            let fileName = event.headers["filename"];
+            let contentType =
+              event.headers["content-type"] || event.headers["Content-Type"];
+            let extension = contentType ? contentType.split("/")[1] : "";
+            if (contentTypes.includes(extension.toLowerCase())) {
+              const S3_KEY = "assets/" + fileName;
+
+              try {
+                let data = await s3
+                  .putObject({
+                    Bucket: S3_BUCKET_NAME,
+                    Key: S3_KEY,
+                    Body: fileContent,
+                    ContentType: contentType,
+                    //ACL: "public-read",
+                  })
+                  .promise();
+                const body = {
+                  bucketName: S3_BUCKET_NAME,
+                  keyName: S3_KEY,
+                  objectUrl: getObjectUrl(S3_BUCKET_NAME, S3_KEY),
+                };
+
+                return {
+                  body: body,
+                  status: 200,
+                };
+              } catch (err) {
+                throw err;
+              }
+            } else {
+              return {
+                body: "Wrong file type. Try again with JPG or PNG.",
+                status: 400,
+              };
+            }
+          };
+
+          function getObjectUrl(bucketName, objectKey) {
+            const objParams = {
+              Bucket: bucketName,
+              Key: objectKey,
+            };
+            const bucket = s3.getObject(objParams);
+
+            const region = bucket.service.config.region;
+            const regionString = region.includes("us-east-1") ? "" : "-" + region;
+            const url = `https://${bucketName}.s3${regionString}.amazonaws.com/${objectKey}`;
+            return url;
+          }
+      FunctionName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-upload-to-s3] ]
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Role: !GetAtt MyLambdaS3Role.Arn 
+
+  # Lambda function to talk to DynamoDB
+  LambdaToDynamoDB:
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        ZipFile: |
+          const AWS = require("aws-sdk");
+          const dynamo = new AWS.DynamoDB.DocumentClient();
+
+          const Table_NAME = "PREFIX-cloudformation-sertifiseringer-table";
+
+          exports.handler = async (event) => {
+            let body;
+            let statusCode = 200;
+            const headers = {
+              "Content-Type": "application/json",
+            };
+
+            try {
+              switch (event.routeKey) {
+                case "DELETE /sertifiseringer/{id}":
+                  await dynamo
+                    .delete({
+                      TableName: Table_NAME,
+                      Key: {
+                        id: event.pathParameters.id,
+                      },
+                    })
+                    .promise();
+                  body = `Slettet sertifisering med id ${event.pathParameters.id}`;
+                  break;
+                case "GET /sertifiseringer/{id}":
+                  body = await dynamo
+                    .get({
+                      TableName: Table_NAME,
+                      Key: {
+                        id: event.pathParameters.id,
+                      },
+                    })
+                    .promise();
+                  body = body.Item;
+                  break;
+                case "GET /sertifiseringer":
+                  body = await dynamo.scan({ TableName: Table_NAME }).promise();
+                  body = body.Items;
+                  break;
+                case "PUT /sertifiseringer":
+                  let requestJSON = JSON.parse(event.body);
+                  await dynamo
+                    .put({
+                      TableName: Table_NAME,
+                      Item: {
+                        id: requestJSON.id,
+                        tittel: requestJSON.tittel,
+                        status: requestJSON.status,
+                        dato: requestJSON.dato,
+                        bilde: requestJSON.bilde,
+                        gyldig_til: requestJSON.gyldig_til,
+                      },
+                    })
+                    .promise();
+                  body = `Lagt til/ oppdatert sertifisering med id: ${requestJSON.id}`;
+                  break;
+                default:
+                  throw new Error(`Ugyldig Rute: "${event.routeKey}"`);
+              }
+            } catch (err) {
+              statusCode = 400;
+              body = err.message;
+            } finally {
+              body = JSON.stringify(body);
+            }
+
+            return {
+              statusCode,
+              body,
+              headers,
+            };
+          };
+      FunctionName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-lambda-to-dynamodb] ]
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Role: !GetAtt MyLambdaDynamoDBRole.Arn 
+
+
+
+  # S3 bucket for hosting a static website
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-bucket] ]
+      WebsiteConfiguration: 
+        IndexDocument: index.html
+
+  # Bucket policy to allow actions on our S3 bucket
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*' 
+            Action: 
+              - s3:GetObject
+              - s3:PutObject
+              - s3:*
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref MyS3Bucket
+                - /*
+      Bucket: !Ref MyS3Bucket
+
+  # DynamoDB table to store certifications
+  MyDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: id # only include key attribute since dynamodb is schemaless
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH # partition key, RANGE er sort key
+      TableName: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-table] ]
+      BillingMode: PAY_PER_REQUEST # default is PROVISIONED
+
+
+  # Allow Lambda functions to be invoked by API Gateway
+  LambdaToDynamoDBApiGatewayInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LambdaToDynamoDB.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyAPIGateway}/dev/*
+
+  LambdaUploadToS3ApiGatewayInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt LambdaUploadToS3.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyAPIGateway}/dev/*
+
+  # Selve API-et
+  MyAPIGateway:
+    Type: AWS::ApiGatewayV2::Api
+    Properties: 
+      Name: !Join [ '', [ !Ref Prefix,  -cloudformation-sertifiseringer-api] ]
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins: 
+          - '*'
+        AllowHeaders: 
+          - '*'
+        AllowMethods: 
+          - '*'
+
+  # Integrasjon mellom API og Lambda-funksjoner
+  LambdaIntegrationDynamoDB:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref MyAPIGateway 
+      Description: Integration between API and LambdaToDynamoDB function 
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub 
+        - 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaARN}/invocations' 
+        - LambdaARN: !GetAtt LambdaToDynamoDB.Arn
+
+  LambdaIntegrationS3:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref MyAPIGateway 
+      Description: Integration between API and LambdaUploadToS3 function 
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub 
+        - 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaARN}/invocations' 
+        - LambdaARN: !GetAtt LambdaUploadToS3.Arn
+
+  # GET/sertifiseringer    
+  ApiRoute1:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref MyAPIGateway
+      RouteKey: GET /sertifiseringer
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref LambdaIntegrationDynamoDB
+
+  # GET/sertifiseringer/{id}
+  ApiRoute2:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref MyAPIGateway
+      RouteKey: GET /sertifiseringer/{id}
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref LambdaIntegrationDynamoDB
+
+  # PUT/sertifiseringer  
+  ApiRoute3:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref MyAPIGateway
+      RouteKey: PUT /sertifiseringer
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref LambdaIntegrationDynamoDB
+
+  # DELETE/sertifiseringer/{id} 
+  ApiRoute4:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref MyAPIGateway
+      RouteKey: DELETE /sertifiseringer/{id}
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref LambdaIntegrationDynamoDB
+
+  # PUT /upload
+  ApiRoute5:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref MyAPIGateway
+      RouteKey: PUT /upload
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref LambdaIntegrationS3
+
+  # Deploye API-et
+  MyAPIDeployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+    - ApiRoute1
+    - ApiRoute2
+    - ApiRoute3
+    - ApiRoute4
+    - ApiRoute5
+    Properties: 
+      ApiId: !Ref MyAPIGateway
+      StageName: dev
+
+  # Lage stage for API deployment
+  MyAPIStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties: 
+      ApiId: !Ref MyAPIGateway
+      #DeploymentId: !Ref MyAPIDeployment
+      AutoDeploy: true
+      StageName: dev

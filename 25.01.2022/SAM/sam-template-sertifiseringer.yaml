@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31' # SAM template
+Description: Stack for creating sertifiseringer webpage
+
+Parameters:
+
+# Prefix that is used to name resources that are created from this template
+  Prefix:
+    Type: String
+    Default: dine-initialer-eller-navn
+
+
+Resources:
+
+# Create Lambda functions and their invoking API methods
+  LambdaUploadToS3SAM:
+    Type: AWS::Serverless::Function # SAM specific resource type
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs14.x
+      CodeUri: src/lambda-upload-to-s3/index.js
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        UploadEvent:
+          Type: HttpApi
+          Properties:
+            Path: /upload
+            Method: PUT
+            ApiId:
+              Ref: MyHttpApi
+
+
+  LambdaToDynamoDBSAM:
+    Type: AWS::Serverless::Function # SAM specific resource type
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs14.x
+      CodeUri: src/lambda-to-dynamodb/index.js
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        GetEvent:
+          Type: HttpApi
+          Properties:
+            Path: /sertifiseringer 
+            Method: GET
+            ApiId:
+              Ref: MyHttpApi
+        
+        GetIdEvent:
+          Type: HttpApi
+          Properties:
+            Path: /sertifiseringer/{id}
+            Method: GET
+            ApiId:
+              Ref: MyHttpApi
+
+        PutEvent:
+          Type: HttpApi
+          Properties:
+            Path: /sertifiseringer 
+            Method: PUT
+            ApiId:
+              Ref: MyHttpApi
+
+        DeleteEvent:
+          Type: HttpApi
+          Properties:
+            Path: /sertifiseringer/{id}
+            Method: DELETE
+            ApiId:
+              Ref: MyHttpApi
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Join [ '', [ !Ref Prefix,  -sam-sertifiseringer-table] ]
+
+
+# Create API Gateway
+  MyHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: dev
+      CorsConfiguration:
+        AllowOrigins: 
+          - '*'
+        AllowHeaders: 
+          - '*'
+        AllowMethods: 
+          - '*'
+
+  # Bucket policy to allow actions on our S3 bucket
+  BucketPolicySAM:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*' 
+            Action: 
+              - s3:*
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref MyS3BucketSAM
+                - /*
+      Bucket: !Ref MyS3BucketSAM
+
+# Create S3 bucket to host website
+  MyS3BucketSAM:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Join [ '', [ !Ref Prefix,  -sam-sertifiseringer-bucket] ]
+      WebsiteConfiguration: 
+        IndexDocument: index.html
+
+# DynamoDB table
+  MyDynamoDBTableSAM:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      ProvisionedThroughput:  
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+      PrimaryKey:
+        Name: id
+        Type: String
+      TableName: !Join [ '', [ !Ref Prefix,  -sam-sertifiseringer-table] ]
