@@ -13,7 +13,7 @@ Parameters:
 Resources:
 
 # Create Lambda functions and their invoking API methods
-  LambdaUploadToS3:
+  LambdaUploadToS3SAM:
     Type: AWS::Serverless::Function # SAM specific resource type
     Properties:
       Handler: index.handler
@@ -31,7 +31,7 @@ Resources:
               Ref: MyHttpApi
 
 
-  LambdaToDynamoDB:
+  LambdaToDynamoDBSAM:
     Type: AWS::Serverless::Function # SAM specific resource type
     Properties:
       Handler: index.handler
@@ -90,7 +90,7 @@ Resources:
           - '*'
 
   # Bucket policy to allow actions on our S3 bucket
-  BucketPolicy:
+  BucketPolicySAM:
     Type: AWS::S3::BucketPolicy
     Properties:
       PolicyDocument:
@@ -105,12 +105,12 @@ Resources:
             Resource: !Join 
               - ''
               - - 'arn:aws:s3:::'
-                - !Ref MyS3Bucket
+                - !Ref MyS3BucketSAM
                 - /*
-      Bucket: !Ref MyS3Bucket
+      Bucket: !Ref MyS3BucketSAM
 
 # Create S3 bucket to host website
-  MyS3Bucket:
+  MyS3BucketSAM:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
@@ -119,7 +119,7 @@ Resources:
         IndexDocument: index.html
 
 # DynamoDB table
-  MyDynamoDBTable:
+  MyDynamoDBTableSAM:
     Type: AWS::Serverless::SimpleTable
     Properties:
       ProvisionedThroughput:  

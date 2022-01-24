@@ -4,20 +4,16 @@ Description: Stack for creating sertifiseringer webpage
 Parameters:
   Prefix:
     Type: String
-    Default: eira
+    Default: eira-testt
 Resources:
-  LambdaUploadToS3:
+  LambdaUploadToS3SAM:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
       Runtime: nodejs14.x
-      CodeUri: s3://eira-sam-deployment/43efcf91e339790b4ae587fd9b253165
+      CodeUri: s3://eira-test-sam-deployment/db22ce26d841a9f94a6fa5481701ea4f
       MemorySize: 128
       Timeout: 10
-      Role:
-        Fn::GetAtt:
-        - MyLambdaS3Role
-        - Arn
       Events:
         UploadEvent:
           Type: HttpApi
@@ -26,12 +22,12 @@ Resources:
             Method: PUT
             ApiId:
               Ref: MyHttpApi
-  LambdaToDynamoDB:
+  LambdaToDynamoDBSAM:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
       Runtime: nodejs14.x
-      CodeUri: s3://eira-sam-deployment/76bf793c8f3788127044d753f7c2080e
+      CodeUri: s3://eira-test-sam-deployment/30dcc2ba9f3e1b5fd13bbb7ac411dd4c
       MemorySize: 128
       Timeout: 10
       Events:
@@ -81,7 +77,7 @@ Resources:
         - '*'
         AllowMethods:
         - '*'
-  BucketPolicy:
+  BucketPolicySAM:
     Type: AWS::S3::BucketPolicy
     Properties:
       PolicyDocument:
@@ -97,11 +93,11 @@ Resources:
             Fn::Join:
             - ''
             - - 'arn:aws:s3:::'
-              - Ref: MyS3Bucket
+              - Ref: MyS3BucketSAM
               - /*
       Bucket:
-        Ref: MyS3Bucket
-  MyS3Bucket:
+        Ref: MyS3BucketSAM
+  MyS3BucketSAM:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
@@ -112,7 +108,7 @@ Resources:
           - -sam-sertifiseringer-bucket
       WebsiteConfiguration:
         IndexDocument: index.html
-  MyDynamoDBTable:
+  MyDynamoDBTableSAM:
     Type: AWS::Serverless::SimpleTable
     Properties:
       ProvisionedThroughput:
@@ -126,25 +122,3 @@ Resources:
         - ''
         - - Ref: Prefix
           - -sam-sertifiseringer-table
-  MyLambdaS3Role:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - lambda.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-      - PolicyName: EmbeddedInlinePolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - s3:*
-            - s3-object-lambda:*
-            Resource: '*'

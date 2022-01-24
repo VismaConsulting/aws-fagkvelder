@@ -8,7 +8,7 @@ Deretter må AWS SAM CLI installeres: https://docs.aws.amazon.com/serverless-app
 ## Kode
 Klon repoet på GitHub. All koden vi skal bruke ligger i mappen SAM.
 
-Åpne `template-sertifiseringer.yaml` og legg inn ditt eget navn eller initialer under Prefix-parameteren (bytt ut `dine-initialer-eller-navn`). Denne parameteren brukes når AWS resources opprettes slik at de får et unikt navn inne på vår AWS-konto. I tillegg må **samme prefix** legges inn i `Table_NAME` og `S3_BUCKET_NAME` i filene `src/lambda-to-dynamo-db/index.js` og `src/lambda-upload-to-s3/index.js`.
+Åpne `template-sertifiseringer.yaml` og legg inn ditt eget navn eller initialer under Prefix-parameteren (bytt ut `dine-initialer-eller-navn`). Denne parameteren brukes når AWS resources opprettes slik at de får et unikt navn inne på vår AWS-konto. I tillegg må **samme prefix** legges inn i `Table_NAME` og `S3_BUCKET_NAME` i filene `src/lambda-to-dynamo-db/index.js` og `src/lambda-upload-to-s3/index.js`. **NB**: gjerne benytt et annet prefix for SAM enn du gjorde i CloudFormation ettersom det virker som at å ha samme navn kan skape litt trøbbel.
 
 Koden i `template-sertifiseringer.yaml` er selve SAM-templaten som AWS-ressursene skal genereres fra. Linjen `Transform: 'AWS::Serverless-2016-10-31'` sier at det er en SAM-template og derfor må kompileres til CloudFormation. Under `Resources` ligger alle ressursene som skal opprettes. Disse er
 
@@ -31,7 +31,7 @@ aws s3 mb s3://PREFIX-sam-deployment
 
 Deretter skal vi kjøre en package-kommando. Husk å benytt samme `PREFIX` her som ovenfor. Denne er 
 ```bash 
-aws cloudformation package --s3-bucket PREFIX-sam-deployment --template-file template-sertifiseringer.yaml --output-template-file gen/template-sertifiseringer-generated.yaml
+aws cloudformation package --s3-bucket PREFIX-sam-deployment --template-file sam-template-sertifiseringer.yaml --output-template-file gen/template-sertifiseringer-generated.yaml
 ```
 
 Til slutt skal koden deployes. Bytt ut `PREFIX` med egne initialer for stack-navnet.
@@ -50,4 +50,4 @@ npm run build
 fra terminalen i React-prosjektet. Dette oppretter en build-mappe. Naviger til S3 i AWS Management Console og finn din `PREFIX-sam-sertifiseringer-bucket`. Åpne denne og velg *Upload*. Last opp innholdet i build-mappen. Deretter kan du gå til `Properties` i din S3 bucket og scrolle helt nederst. Klikk på lenken under `Static website hosting`. Nå har du opprettet din helt egne sertifiseringer-nettside ved hjelp av SAM.
 
 ## Cleanup
-Når du vil slette stacken din og alle ressursene den opprettet må du først navigere inn i S3 og slette alle filene i din `PREFIX-sam-sertifiseringer-bucket`. Deretter kan du gå til CloudFormation og velge din stack og trykke på din `Delete`.
+Når du vil slette stacken din og alle ressursene den opprettet må du først navigere inn i S3 og slette alle filene i din `PREFIX-sam-sertifiseringer-bucket`. Deretter kan du gå til CloudFormation og velge din stack og trykke på din `Delete`. Deployment-bucketen kan slettes ved å først slette filene i den og deretter slette selve bucketen.
