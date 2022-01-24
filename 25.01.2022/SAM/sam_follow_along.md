@@ -8,9 +8,9 @@ Deretter må AWS SAM CLI installeres: https://docs.aws.amazon.com/serverless-app
 ## Kode
 Klon repoet på GitHub. All koden vi skal bruke ligger i mappen SAM.
 
-Åpne `template-sertifiseringer.yaml` og legg inn ditt eget navn eller initialer under Prefix-parameteren (bytt ut `dine-initialer-eller-navn`). Denne parameteren brukes når AWS resources opprettes slik at de får et unikt navn inne på vår AWS-konto. I tillegg må **samme prefix** legges inn i `Table_NAME` og `S3_BUCKET_NAME` i filene `src/lambda-to-dynamo-db/index.js` og `src/lambda-upload-to-s3/index.js`. **NB**: gjerne benytt et annet prefix for SAM enn du gjorde i CloudFormation ettersom det virker som at å ha samme navn kan skape litt trøbbel.
+Åpne `sam-template-sertifiseringer.yaml` og legg inn ditt eget navn eller initialer under Prefix-parameteren (bytt ut `dine-initialer-eller-navn`). Denne parameteren brukes når AWS resources opprettes slik at de får et unikt navn inne på vår AWS-konto. I tillegg må **samme prefix** legges inn i `Table_NAME` og `S3_BUCKET_NAME` i filene `src/lambda-to-dynamo-db/index.js` og `src/lambda-upload-to-s3/index.js`. **NB**: gjerne benytt et annet prefix for SAM enn du gjorde i CloudFormation ettersom det virker som at å ha samme navn kan skape litt trøbbel.
 
-Koden i `template-sertifiseringer.yaml` er selve SAM-templaten som AWS-ressursene skal genereres fra. Linjen `Transform: 'AWS::Serverless-2016-10-31'` sier at det er en SAM-template og derfor må kompileres til CloudFormation. Under `Resources` ligger alle ressursene som skal opprettes. Disse er
+Koden i `sam-template-sertifiseringer.yaml` er selve SAM-templaten som AWS-ressursene skal genereres fra. Linjen `Transform: 'AWS::Serverless-2016-10-31'` sier at det er en SAM-template og derfor må kompileres til CloudFormation. Under `Resources` ligger alle ressursene som skal opprettes. Disse er
 
 - Lambda-funksjon for å laste opp data til DynamoDB-tabell
 - Lambda-funksjon for å laste opp bilde til S3 bucket
