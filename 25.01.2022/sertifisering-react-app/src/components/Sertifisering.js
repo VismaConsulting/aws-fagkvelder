@@ -8,7 +8,7 @@ import Typography from "@mui/material/Typography";
 import { deleteSertifisering } from "../api";
 import AWSLogo from "../assets/aws-logo.png";
 
-export default function Sertifisering({ sertifisering }) {
+export default function Sertifisering({ sertifisering, setNyesteSertifisering }) {
   return (
     <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <CardMedia
@@ -36,7 +36,9 @@ export default function Sertifisering({ sertifisering }) {
       <CardActions>
         <Button
           size="small"
-          onClick={() => deleteSertifisering(sertifisering.id)}
+          onClick={() => {
+            deleteSertifisering(sertifisering.id, setNyesteSertifisering);
+          }}
         >
           Slett
         </Button>

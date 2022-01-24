@@ -1,7 +1,6 @@
 import axios from "axios";
 
-// Legg til URL for API-et
-const apiURL = "https://9njldg73dd.execute-api.us-east-1.amazonaws.com/dev";
+const apiURL = "https://iyoqsruif3.execute-api.us-east-1.amazonaws.com/dev";
 
 export const getSertifiseringer = async () => {
   const respons = await axios.get(`${apiURL}/sertifiseringer`);
@@ -20,11 +19,12 @@ export const putSertifisering = async (payload) => {
   return respons.data;
 };
 
-export const deleteSertifisering = async (id) => {
+export const deleteSertifisering = async (id, onFinish) => {
   const respons = await axios.delete(`${apiURL}/sertifiseringer/${id}`, {
     headers: { "Access-Control-Allow-Origin": "*" },
   });
   alert(respons.data);
+  onFinish(id);
 };
 
 export const putBilde = async (payload) => {

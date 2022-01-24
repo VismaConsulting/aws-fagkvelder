@@ -18,13 +18,14 @@ const theme = createTheme();
 
 export default function App() {
   let [sertifiseringer, setSertifiseringer] = useState([]);
+  let [nyesteSertifisering, setNyesteSertifisering] = useState(-1);
 
   useEffect(() => {
     (async () => {
       const sertifiseringer = await getSertifiseringer();
       setSertifiseringer(sertifiseringer);
     })();
-  }, [sertifiseringer]);
+  }, [nyesteSertifisering]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -71,7 +72,7 @@ export default function App() {
               spacing={2}
               justifyContent="center"
             >
-              <Addsertification />
+              <Addsertification setNyesteSertifisering={setNyesteSertifisering} />
             </Stack>
           </Container>
         </Box>
@@ -80,7 +81,7 @@ export default function App() {
             {sertifiseringer.length > 0 ? (
               sertifiseringer.map((sert) => (
                 <Grid item key={sert.id} xs={12} sm={6} md={4}>
-                  <Sertifisering sertifisering={sert} />
+                  <Sertifisering sertifisering={sert} setNyesteSertifisering={setNyesteSertifisering} />
                 </Grid>
               ))
             ) : (

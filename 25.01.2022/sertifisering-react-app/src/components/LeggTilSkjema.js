@@ -8,7 +8,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { putBilde, putSertifisering } from "../api";
 
-export default function AddCertification() {
+export default function AddCertification({setNyesteSertifisering}) {
   const [open, setOpen] = React.useState(false);
   const [fileInput, setFileInput] = React.useState(null);
 
@@ -58,15 +58,21 @@ export default function AddCertification() {
       ? putBilde(fileInput).then((res) => {
           let payload = { ...inputVerdier };
           payload.bilde = res.body.objectUrl;
-          putSertifisering(payload).then((res) => lukkSkjema());
+          putSertifisering(payload).then((res) => {
+            lukkSkjema(); 
+            setNyesteSertifisering(inputVerdier.id)
+          });
         })
-      : putSertifisering(inputVerdier).then((res) => lukkSkjema());
+      : putSertifisering(inputVerdier).then((res) => {
+        lukkSkjema(); 
+        setNyesteSertifisering(inputVerdier.id)
+      });
   };
 
   return (
     <div>
       <Button variant="contained" color="primary" onClick={visSkjema}>
-        Legge til sertifisering
+        Legg til sertifisering
       </Button>
       <Dialog
         open={open}
@@ -74,7 +80,7 @@ export default function AddCertification() {
         aria-labelledby="form-dialog-title"
       >
         <DialogTitle id="form-dialog-title">
-          Legge til sertifisering
+          Legg til sertifisering
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
