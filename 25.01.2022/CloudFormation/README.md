@@ -28,7 +28,7 @@ Når status på stacken viser CREATION_COMPLETE, kan vi åpne API Gateway i AWS 
 npm install
 npm run build
 ```
-fra terminalen i React-prosjektet. Dette oppretter en build-mappe. Naviger til S3 i AWS Management Console og finn din `PREFIX-cloudformation-sertifiseringer-bucket`. Åpne denne og velg *Upload*. Last opp innholdet i build-mappen. Deretter kan du gå til `Properties` i din S3 bucket og scrolle helt nederst. Klikk på lenken under `Static website hosting`. Nå har du opprettet din helt egne sertifiseringer-nettside ved hjelp av SAM.
+fra terminalen i React-prosjektet. Dette oppretter en build-mappe. Naviger til S3 i AWS Management Console og finn din `PREFIX-cloudformation-sertifiseringer-bucket`. Åpne denne og velg *Upload*. Last opp innholdet i build-mappen. Deretter kan du gå til `Properties` i din S3 bucket og scrolle helt nederst. Klikk på lenken under `Static website hosting`. Nå har du opprettet din helt egne sertifiseringer-nettside ved hjelp av CloudFormation.
 
 ## Cleanup
 Når du vil slette stacken din og alle ressursene den opprettet må du først navigere inn i S3 og slette alle filene i din `PREFIX-cloudformation-sertifiseringer-bucket`. Deretter kan du gå til CloudFormation og velge din stack og trykke på din `Delete`.
