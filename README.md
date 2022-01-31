@@ -48,7 +48,7 @@ Mohamad ta oss gjennom fordelene ved migrering, migreringsfasene og hvilke AWS t
 
 Stikkord: NAV PoC, MySQL, RDS, Database Migration Service, AWS Application Migration Service, database, migrering
 
-## \#6 CI/CD
+## \#6 Infrastructure as Code (IaC)
 
 [Kodesnutter](./25.01.2022)
 
