@@ -10,7 +10,7 @@ Vi hadde en rask introduksjon av @mKenas til AWS hvor vi gikk gjennom hva sky er
 
 For den praktiske delen av denne fagkvelden hadde vi en hands-on gjennomgang av hvordan sette opp en EC2-server, i flere nivåer. Vi satt opp en enkel Apache webserver med litt info, samt testet ut templates til Scaling Groups og Load Balancing med stresstesting av servere.
 
-## \#2 CI/CD
+## \#2 Serverless
 
 [Kodesnutter](./19.10.2021)
 
@@ -18,7 +18,7 @@ I forrige fagkveld så vi på det å spinne opp en server. Nå skal vi ta et ste
 
 Stikkord: AWS, serverless, Lambda function, API Gateway, DynamoDB, S3
 
-## \#3 Serverless
+## \#3 CI/CD
 
 [Kodesnutter](./11.11.2021)
 
@@ -61,4 +61,4 @@ Eira og Gaute tok oss gjennom hvordan sette opp den samme applikasjonen med infr
 [CloudFormation](./25.01.2022/CloudFormation)\
 [SAM](./25.01.2022/SAM)
 
-Stikkord: CloudFormation, Serverless Application Model (SAM), Cloud Development Kit (CDK), EC2
+Stikkord: CloudFormation, Serverless Application Model (SAM), Cloud Development Kit (CDK)
